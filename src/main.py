@@ -172,7 +172,8 @@ def remove_rows_Nan_prince_bed_bath_car(dataset):
 
 dataset = remove_rows_Nan_prince_bed_bath_car(dataset)
 print(dataset.isnull().sum())
-dataset = dataset.drop(['Suburb','Address','Distance','Postcode','CouncilArea','Regionname','BuildingArea'],axis=1)
+# dataset = dataset.drop(['Suburb','Address','Distance','Postcode','CouncilArea','Regionname','BuildingArea'],axis=1)
+dataset = dataset.drop(['Suburb','Address','Postcode','CouncilArea','Regionname'],axis=1)
 print(dataset.dtypes)
 print(dataset.isnull().sum())
 
@@ -238,15 +239,18 @@ def convert_sellerG (dataset):
 dataset = convert_sellerG(dataset)
 
 
+# Salvo les dades fins aquí per carregar després
+dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
+z=3
 """
 
 """
-dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little_darling_db.csv")
+dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
 
 # Actualitzem els price segons IPC: 2017-1.7  2018-1.9
 # Posar price al final
 atributs = dataset.columns.tolist()
-aux = atributs[4:14]
+aux = atributs[3:14]
 aux += atributs[15:]
 aux.append(atributs[14])
 dataset = dataset[aux]
@@ -265,7 +269,7 @@ def remove_rows_BuildingArea(dataset):
     return dataset
 
 dataset = remove_rows_BuildingArea(dataset)
-dataset = dataset.reset_index()
+dataset = dataset.reset_index() #ha ficat Level0 i Index
 
 def actualize_inflation_price(dataset):
     inflation = {'2016': 1.16, '2017': 1.09, '2018': 1.0}
@@ -277,7 +281,7 @@ dataset = actualize_inflation_price(dataset)
 
 
 print(dataset.isnull().sum())
-dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little_darling_db_10469.csv")
+dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_284.csv")
 """
 
 """
@@ -317,9 +321,12 @@ def check_bathroom(dataset):
 check_bathroom(dataset)
 # dataset= dataset.replace(np.nan,0)
 
-dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little_darling_db_10469.csv")
+dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
 """
-dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little_darling_db_10469.csv")
+
+
+
+dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
 atributs = dataset.columns.tolist()
 aux = atributs[3:]
 dataset = dataset[aux]
@@ -404,8 +411,8 @@ def make_histogrames(dataset, atributes):
 # ----------------------------------------------------------------------------------------------------------------- #
 ################  Regressions  ##################
 
-atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Lattitude','Longtitude','Type(h)']
-
+# atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Lattitude','Longtitude','Type(h)']
+atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Distance','Type(h)']
 def mse(v1, v2):
     return ((v1 - v2) ** 2).mean()
 
@@ -482,11 +489,11 @@ def regressor_lineal(dataset):
     plt.legend()
     plt.xlabel('Folds count')
     plt.ylabel('{}'.format('R2'))
-    plt.title('{} by K-fold'.format('R2 score'))
+    plt.title('Lineal Regressor {} by K-fold'.format('R2 score'))
     # plt.savefig("../figures/model_{}_kfoldB".format(type_score))
     plt.show()
 
-# regressor_lineal(dataset[atributs_correlació])
+regressor_lineal(dataset[atributs_correlació])
 
 
 def random_forest(dataset):
@@ -496,6 +503,23 @@ def random_forest(dataset):
     y_data = data[:, -1]
     x_train, y_train, x_val, y_val = split_data(x_data, y_data)
 
+    r_forest = RandomForestRegressor(max_depth=15)
+    # R2 amb 10 k
+    K_Fold = model_selection.KFold(n_splits=5, random_state=random.randint(0, 99), shuffle=True)
+    cv_results = model_selection.cross_val_score(RandomForestRegressor(max_depth=15), x_data, y_data, cv=K_Fold)
+    message = "%s:  %f  (%f)" % ('Random Forest R2 mean:', cv_results.mean(), cv_results.std())
+    print(message)
+
+    # Accuracy
+    r_forest_fitted = r_forest.fit(x_train, y_train)
+    predcited = r_forest_fitted.predict(x_val)
+    errors = abs(predcited - y_val)
+    mape = np.mean(100 * (errors / y_val))
+    accuracy = 100 - mape
+    msg = "%s= %.2f" % ('Random Forest', round(accuracy, 2))
+    print('Accuracy of', msg, '%')
+
+    #Gràfica Accuracy Train Test segons depth
     max_depths = np.linspace(1, 50, 50, endpoint=True)
 
     train_results = []
@@ -518,6 +542,7 @@ def random_forest(dataset):
         test_results.append(accuracy)
 
     from matplotlib.legend_handler import HandlerLine2D
+    print('Random Forest best accuracy:',max(test_results))
     line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
     line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
 
@@ -527,7 +552,7 @@ def random_forest(dataset):
     plt.title('Random Forest Accuracy')
     plt.show()
 
-# random_forest(dataset[atributs_correlació])
+random_forest(dataset[atributs_correlació])
 
 
 def decision_tree(dataset):
@@ -577,6 +602,7 @@ def decision_tree(dataset):
         test_results.append(accuracy)
 
     from matplotlib.legend_handler import HandlerLine2D
+    print('Decision Tree best accuracy:', max(test_results))
     line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
     line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
 
@@ -587,7 +613,7 @@ def decision_tree(dataset):
     plt.show()
 
 
-# decision_tree(dataset[atributs_correlació])
+decision_tree(dataset[atributs_correlació])
 
 
 
