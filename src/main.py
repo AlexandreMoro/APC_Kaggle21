@@ -15,6 +15,8 @@ from sklearn import model_selection
 import random
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
+import statistics
+from matplotlib.legend_handler import HandlerLine2D
 
 # Repo creat
 # ----------------------------------------------------------------------------------------------------------------- #
@@ -324,13 +326,42 @@ check_bathroom(dataset)
 dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
 """
 
+# dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
+#
+# atributs = dataset.columns.tolist()
+# aux = atributs[3:]
+# dataset = dataset[aux]
+# # dataset = dataset.reset_index()
 
+# Selecció del dataset tractat 'EDA' o el sense tractar 'FULL'
+def choose_dataset(which_one):
+    if which_one == 'EDA':
+        dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
+        atributs = dataset.columns.tolist()
+        aux = atributs[3:]
+        dataset = dataset[aux]
+        atributs = ['Rooms', 'Bedroom2', 'Bathroom', 'Car', 'Distance', 'Type(h)','Price']
+        atributs =  ['Rooms', 'Date', 'Distance', 'Bedroom2', 'Bathroom', 'Car', 'Landsize', 'BuildingArea','YearBuilt',
+         'Lattitude', 'Longtitude','Type(h)','Type(t)','Type(u)', 'Method(S)', 'Method(SP)', 'Method(PI)', 'Method(VB)',
+         'Method(SA)', 'big', 'medium', 'small', 'Price']
 
-dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
-atributs = dataset.columns.tolist()
-aux = atributs[3:]
-dataset = dataset[aux]
-# dataset = dataset.reset_index()
+    else:
+        dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/Melbourne_housing_FULL.csv")
+        dataset = dataset.dropna()
+        atributs = dataset.columns.tolist()
+        aux = atributs[0:4]
+        aux += atributs[5:-1]  # al posar -1 ja eliminem la última de property count
+        aux.append(atributs[4])
+        dataset = dataset[aux]
+        atributs = ['Rooms', 'Bedroom2', 'Bathroom', 'Car', 'Distance','Price']
+        atributs = ['Rooms', 'Distance', 'Bedroom2', 'Bathroom', 'Car', 'Landsize', 'BuildingArea', 'YearBuilt',
+                    'Lattitude', 'Longtitude', 'Price']
+
+    return dataset, atributs
+
+dataset, atributs_correlació = choose_dataset('EDA')
+# dataset, atributs_correlació = choose_dataset('Full')
+
 def correlacio_pearson(dataset):
     plt.figure()
     fig, ax = plt.subplots(figsize=(20, 10))  # per mida cel·les
@@ -408,11 +439,20 @@ def make_histogrames(dataset, atributes):
 # make_histogrames(dataset,atributs)
 
 
+def make_map_merlbourne(dataset):
+    dataset.plot(kind="scatter", x="Longtitude", y="Lattitude", alpha=0.4, c=dataset.Distance,
+                 cmap=plt.get_cmap("jet"), label='Distance to the city center', figsize=(15, 10))
+    plt.ylabel("Latitude", fontsize=14)
+    plt.legend(fontsize=14)
+    plt.title('Merlbourne distribution of houses',fontsize=24)
+    plt.show()
+
+
+# make_map_merlbourne(dataset)
+
 # ----------------------------------------------------------------------------------------------------------------- #
 ################  Regressions  ##################
 
-# atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Lattitude','Longtitude','Type(h)']
-atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Distance','Type(h)']
 def mse(v1, v2):
     return ((v1 - v2) ** 2).mean()
 
@@ -453,29 +493,9 @@ def regressor_lineal(dataset):
     data = dataset_norm.values
     x_data = data[:, :-1]
     y_data = data[:, -1]
-    x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+    # x_train, y_train, x_val, y_val = split_data(x_data, y_data)
 
-    regr = regression(x_train, y_train)
-    predicted = regr.predict(x_val)
-
-    error = str(round(mse(y_val, predicted), 3))  # calculem error
-    # r2 = str(round(r2_score(y_val, predicted), 3))
-
-    errors = abs(predicted - y_val)
-    mape = np.mean(100 * (errors / y_val))
-    accuracy = 100 - mape
-    msg = "= %.2f" % ( round(accuracy, 2))
-
-    print('Accuracy of', msg, '%')
-    print("Error: %s" % (error))
-    # print("R2 score: %s" % (r2))
-
-    # K_Fold = model_selection.KFold(n_splits=10, random_state=random.randint(0, 99), shuffle=True)
-    # cv_results = model_selection.cross_val_score(LinearRegression(), x_data, y_data, cv=K_Fold)
-    # message = "%s:  %f  (%f)" % ('LinealReg R2 mean:', cv_results.mean(), cv_results.std())
-    # print(message)
-
-    resultat = []; plt.figure(); res_tmp = []; i_index = [2, 3, 4, 6, 10, 15]
+    resultat = []; plt.figure(); res_tmp = []; i_index = [2, 3, 4, 6, 10, 15, 20]
     for i in i_index:
         K_Fold = model_selection.KFold(n_splits=i, random_state=random.randint(0, 99), shuffle=True)
         cv_results = model_selection.cross_val_score(LinearRegression(), x_data, y_data, cv=K_Fold)
@@ -485,13 +505,14 @@ def regressor_lineal(dataset):
 
     resultat.append(res_tmp)
     plt.plot(i_index, res_tmp, label='{}'.format('LinealReg'))
-    plt.ylim(0.2, 0.5)
+    plt.ylim(0.3, 0.6)
     plt.legend()
     plt.xlabel('Folds count')
     plt.ylabel('{}'.format('R2'))
-    plt.title('Lineal Regressor {} by K-fold'.format('R2 score'))
+    plt.title('Lineal Regressor {} by K-fold. Mean: {}'.format('R2 score', round(statistics.mean(res_tmp),4)))
     # plt.savefig("../figures/model_{}_kfoldB".format(type_score))
     plt.show()
+    print('Lineal Regressor {} by K-fold. Mean: {}'.format('R2 score',round(statistics.mean(res_tmp),4)))
 
 regressor_lineal(dataset[atributs_correlació])
 
@@ -503,53 +524,54 @@ def random_forest(dataset):
     y_data = data[:, -1]
     x_train, y_train, x_val, y_val = split_data(x_data, y_data)
 
-    r_forest = RandomForestRegressor(max_depth=15)
-    # R2 amb 10 k
-    K_Fold = model_selection.KFold(n_splits=5, random_state=random.randint(0, 99), shuffle=True)
-    cv_results = model_selection.cross_val_score(RandomForestRegressor(max_depth=15), x_data, y_data, cv=K_Fold)
-    message = "%s:  %f  (%f)" % ('Random Forest R2 mean:', cv_results.mean(), cv_results.std())
-    print(message)
+    # R2 en funció del K-fold
+    resultat = [];
+    plt.figure();
+    res_tmp = [];
+    i_index = [2, 3, 4, 6, 10, 15, 20]
+    for i in i_index:
+        K_Fold = model_selection.KFold(n_splits=i, random_state=random.randint(0, 99), shuffle=True)
+        cv_results = model_selection.cross_val_score(RandomForestRegressor(max_depth=30), x_data, y_data, cv=K_Fold)
+        message = "%s:  %f  (%f)" % (
+        'Random Forest (max dp:30) R2 mean with k-{}'.format(i), cv_results.mean(), cv_results.std())
+        print(message)
+        res_tmp.append(cv_results.mean())
 
-    # Accuracy
-    r_forest_fitted = r_forest.fit(x_train, y_train)
-    predcited = r_forest_fitted.predict(x_val)
-    errors = abs(predcited - y_val)
-    mape = np.mean(100 * (errors / y_val))
-    accuracy = 100 - mape
-    msg = "%s= %.2f" % ('Random Forest', round(accuracy, 2))
-    print('Accuracy of', msg, '%')
+    resultat.append(res_tmp)
+    plt.plot(i_index, res_tmp, label='{}'.format('Random Forest'))
+    plt.ylim(0.6, 1.0)
+    plt.legend()
+    plt.xlabel('Folds count')
+    plt.ylabel('{}'.format('R2 score'))
+    plt.title('Random Forest Regr. {} by K-fold. Mean: {}'.format('R2 score', round(statistics.mean(res_tmp), 4)))
+    # plt.savefig("../figures/model_{}_kfoldB".format(type_score))
+    plt.show()
+    print('Random Forest Regressor {} by K-fold. Mean: {}'.format('R2 score',round(statistics.mean(res_tmp), 4)))
 
-    #Gràfica Accuracy Train Test segons depth
+    # R2 en funció de max_depth
     max_depths = np.linspace(1, 50, 50, endpoint=True)
-
     train_results = []
     test_results = []
-
     for i in max_depths:
         dt = RandomForestRegressor(max_depth=i)
         dt.fit(x_train, y_train)
+
         predicted = dt.predict(x_train)
-        errors = abs(predicted - y_train)
+        r2 = round(r2_score(y_train, predicted), 3)
+        train_results.append(r2)
 
-        mape = 100 * (errors / y_train)
-        accuracy = 100 - np.mean(mape)
-        train_results.append(accuracy)
         predicted = dt.predict(x_val)
+        r2 = round(r2_score(y_val, predicted), 3)
+        test_results.append(r2)
 
-        errors = abs(predicted - y_val)
-        mape = 100 * (errors / y_val)
-        accuracy = 100 - np.mean(mape)
-        test_results.append(accuracy)
-
-    from matplotlib.legend_handler import HandlerLine2D
-    print('Random Forest best accuracy:',max(test_results))
-    line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
-    line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
+    print('Random Forest best test R2:',max(test_results))
+    line1, = plt.plot(max_depths, train_results, 'b', label='Train R2 error')
+    line2, = plt.plot(max_depths, test_results, 'r', label='Test R2 error')
 
     plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
-    plt.ylabel('Accuracy score')
+    plt.ylabel('R2 score')
     plt.xlabel('Tree depth')
-    plt.title('Random Forest Accuracy')
+    plt.title('Random Forest R2. Best test: {}'.format(max(test_results)))
     plt.show()
 
 random_forest(dataset[atributs_correlació])
@@ -562,54 +584,54 @@ def decision_tree(dataset):
     y_data = data[:, -1]
     x_train, y_train, x_val, y_val = split_data(x_data, y_data)
 
-    d_tree = DecisionTreeRegressor(random_state=0)
-    #R2 amb 10 k
-    K_Fold = model_selection.KFold(n_splits=5, random_state=random.randint(0, 99), shuffle=True)
-    cv_results = model_selection.cross_val_score(DecisionTreeRegressor(random_state=10), x_data, y_data, cv=K_Fold)
-    message = "%s:  %f  (%f)" % ('Decision Tree R2 mean:', cv_results.mean(), cv_results.std())
-    print(message)
+    # R2 en funció del K-fold
+    resultat = [];
+    plt.figure();
+    res_tmp = [];
+    i_index = [2, 3, 4, 6, 10, 15, 20]
+    for i in i_index:
+        K_Fold = model_selection.KFold(n_splits=i, random_state=random.randint(0, 99), shuffle=True)
+        cv_results = model_selection.cross_val_score(DecisionTreeRegressor(max_depth=30), x_data, y_data, cv=K_Fold)
+        message = "%s:  %f  (%f)" % ('Decision Tree (max dp:30) R2 mean with k-{}'.format(i), cv_results.mean(), cv_results.std())
+        print(message)
+        res_tmp.append(cv_results.mean())
 
-    #Accuracy
-    d_tree_fitted = d_tree.fit(x_train,y_train)
-    predcited = d_tree_fitted.predict(x_val)
-    errors = abs(predcited - y_val)
-    mape = np.mean(100 * (errors / y_val))
-    accuracy = 100 - mape
-    msg = "%s= %.2f" % ('Decision Tree',round(accuracy, 2))
-    print('Accuracy of', msg, '%')
+    resultat.append(res_tmp)
+    plt.plot(i_index, res_tmp, label='{}'.format('Decision Tree'))
+    plt.ylim(0.4, 0.8)
+    plt.legend()
+    plt.xlabel('Folds count')
+    plt.ylabel('{}'.format('R2 score'))
+    plt.title('Decision Tree Regr. {} by K-fold. Mean: {}'.format('R2 score', round(statistics.mean(res_tmp), 4)))
+    # plt.savefig("../figures/model_{}_kfoldB".format(type_score))
+    plt.show()
+    print('Decision Tree Regressor {} by K-fold. Mean: {}'.format('R2 score',round(statistics.mean(res_tmp), 4)))
 
-    ####Prova gràfica
+    #R2 en funció de max_depth
 
     max_depths = np.linspace(1, 50, 50, endpoint=True)
-
     train_results = []
     test_results = []
-
     for i in max_depths:
         dt = DecisionTreeRegressor(max_depth=i)
         dt.fit(x_train, y_train)
+
         predicted = dt.predict(x_train)
-        errors = abs(predicted - y_train)
+        r2 = round(r2_score(y_train, predicted), 3)
+        train_results.append(r2)
 
-        mape = 100 * (errors / y_train)
-        accuracy = 100 - np.mean(mape)
-        train_results.append(accuracy)
         predicted = dt.predict(x_val)
+        r2 = round(r2_score(y_val, predicted), 3)
+        test_results.append(r2)
 
-        errors = abs(predicted - y_val)
-        mape = 100 * (errors / y_val)
-        accuracy = 100 - np.mean(mape)
-        test_results.append(accuracy)
-
-    from matplotlib.legend_handler import HandlerLine2D
-    print('Decision Tree best accuracy:', max(test_results))
-    line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
-    line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
+    print('Decision Tree best test R2:', max(test_results))
+    line1, = plt.plot(max_depths, train_results, 'b', label='Train R2 error')
+    line2, = plt.plot(max_depths, test_results, 'r', label='Test R2 error')
 
     plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
-    plt.ylabel('Accuracy score')
+    plt.ylabel('R2 score')
     plt.xlabel('Tree depth')
-    plt.title('Decision Tree Accuracy')
+    plt.title('Decision Tree R2. Best test: {}'.format(max(test_results)))
     plt.show()
 
 
