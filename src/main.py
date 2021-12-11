@@ -11,6 +11,10 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
+from sklearn import model_selection
+import random
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
 
 # Repo creat
 # ----------------------------------------------------------------------------------------------------------------- #
@@ -398,8 +402,9 @@ def make_histogrames(dataset, atributes):
 
 
 # ----------------------------------------------------------------------------------------------------------------- #
-################  Regressió  ##################
+################  Regressions  ##################
 
+atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Lattitude','Longtitude','Type(h)']
 
 def mse(v1, v2):
     return ((v1 - v2) ** 2).mean()
@@ -447,12 +452,143 @@ def regressor_lineal(dataset):
     predicted = regr.predict(x_val)
 
     error = str(round(mse(y_val, predicted), 3))  # calculem error
-    r2 = str(round(r2_score(y_val, predicted), 3))
-    print("Error: %s" % (error))
-    print("R2 score: %s" % (r2))
+    # r2 = str(round(r2_score(y_val, predicted), 3))
 
-atributs_correlació=['Rooms','Bedroom2','Bathroom','Car','Lattitude','Longtitude','Type(h)']
-regressor_lineal(dataset[atributs_correlació])
+    errors = abs(predicted - y_val)
+    mape = np.mean(100 * (errors / y_val))
+    accuracy = 100 - mape
+    msg = "= %.2f" % ( round(accuracy, 2))
+
+    print('Accuracy of', msg, '%')
+    print("Error: %s" % (error))
+    # print("R2 score: %s" % (r2))
+
+    # K_Fold = model_selection.KFold(n_splits=10, random_state=random.randint(0, 99), shuffle=True)
+    # cv_results = model_selection.cross_val_score(LinearRegression(), x_data, y_data, cv=K_Fold)
+    # message = "%s:  %f  (%f)" % ('LinealReg R2 mean:', cv_results.mean(), cv_results.std())
+    # print(message)
+
+    resultat = []; plt.figure(); res_tmp = []; i_index = [2, 3, 4, 6, 10, 15]
+    for i in i_index:
+        K_Fold = model_selection.KFold(n_splits=i, random_state=random.randint(0, 99), shuffle=True)
+        cv_results = model_selection.cross_val_score(LinearRegression(), x_data, y_data, cv=K_Fold)
+        message = "%s:  %f  (%f)" % ('LinealReg R2 mean with k-{}'.format(i), cv_results.mean(), cv_results.std())
+        print(message)
+        res_tmp.append(cv_results.mean())
+
+    resultat.append(res_tmp)
+    plt.plot(i_index, res_tmp, label='{}'.format('LinealReg'))
+    plt.ylim(0.2, 0.5)
+    plt.legend()
+    plt.xlabel('Folds count')
+    plt.ylabel('{}'.format('R2'))
+    plt.title('{} by K-fold'.format('R2 score'))
+    # plt.savefig("../figures/model_{}_kfoldB".format(type_score))
+    plt.show()
+
+# regressor_lineal(dataset[atributs_correlació])
+
+
+def random_forest(dataset):
+    dataset_norm = standarize(dataset)
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+    x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+
+    max_depths = np.linspace(1, 50, 50, endpoint=True)
+
+    train_results = []
+    test_results = []
+
+    for i in max_depths:
+        dt = RandomForestRegressor(max_depth=i)
+        dt.fit(x_train, y_train)
+        predicted = dt.predict(x_train)
+        errors = abs(predicted - y_train)
+
+        mape = 100 * (errors / y_train)
+        accuracy = 100 - np.mean(mape)
+        train_results.append(accuracy)
+        predicted = dt.predict(x_val)
+
+        errors = abs(predicted - y_val)
+        mape = 100 * (errors / y_val)
+        accuracy = 100 - np.mean(mape)
+        test_results.append(accuracy)
+
+    from matplotlib.legend_handler import HandlerLine2D
+    line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
+    line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
+
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel('Accuracy score')
+    plt.xlabel('Tree depth')
+    plt.title('Random Forest Accuracy')
+    plt.show()
+
+# random_forest(dataset[atributs_correlació])
+
+
+def decision_tree(dataset):
+    dataset_norm = standarize(dataset)
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+    x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+
+    d_tree = DecisionTreeRegressor(random_state=0)
+    #R2 amb 10 k
+    K_Fold = model_selection.KFold(n_splits=5, random_state=random.randint(0, 99), shuffle=True)
+    cv_results = model_selection.cross_val_score(DecisionTreeRegressor(random_state=10), x_data, y_data, cv=K_Fold)
+    message = "%s:  %f  (%f)" % ('Decision Tree R2 mean:', cv_results.mean(), cv_results.std())
+    print(message)
+
+    #Accuracy
+    d_tree_fitted = d_tree.fit(x_train,y_train)
+    predcited = d_tree_fitted.predict(x_val)
+    errors = abs(predcited - y_val)
+    mape = np.mean(100 * (errors / y_val))
+    accuracy = 100 - mape
+    msg = "%s= %.2f" % ('Decision Tree',round(accuracy, 2))
+    print('Accuracy of', msg, '%')
+
+    ####Prova gràfica
+
+    max_depths = np.linspace(1, 50, 50, endpoint=True)
+
+    train_results = []
+    test_results = []
+
+    for i in max_depths:
+        dt = DecisionTreeRegressor(max_depth=i)
+        dt.fit(x_train, y_train)
+        predicted = dt.predict(x_train)
+        errors = abs(predicted - y_train)
+
+        mape = 100 * (errors / y_train)
+        accuracy = 100 - np.mean(mape)
+        train_results.append(accuracy)
+        predicted = dt.predict(x_val)
+
+        errors = abs(predicted - y_val)
+        mape = 100 * (errors / y_val)
+        accuracy = 100 - np.mean(mape)
+        test_results.append(accuracy)
+
+    from matplotlib.legend_handler import HandlerLine2D
+    line1, = plt.plot(max_depths, train_results, 'b', label='Train accuracy')
+    line2, = plt.plot(max_depths, test_results, 'r', label='Test accuracy')
+
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel('Accuracy score')
+    plt.xlabel('Tree depth')
+    plt.title('Decision Tree Accuracy')
+    plt.show()
+
+
+# decision_tree(dataset[atributs_correlació])
+
 
 
 
