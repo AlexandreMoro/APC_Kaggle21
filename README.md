@@ -16,7 +16,7 @@ Aquest dataset s'anomena Melbourne_housing_FULL.csv. Conté un total de 34857 mo
  'Regionname', 'Propertycount'). Un 38%, d'ells és categòric i la resta són numèrics de tipus float64. Aquests darrers valors no es troben normalitzats i tenen unes grans diferènices d'escala ja que per exemple, els valors del nombre d'habitacions o banys són de poques unitats mentre que el preu supera en moltes ocasions el milió.
 
 Les mostres presenten una gran heterogeneïtat pel què fa a les característiques que tenen registrades (sense valors null). En alguns atributs com BuildingArea o YearBuilt, 66% de les 
-mostres tenen Nan en aquestes caracterísitques. Per la resta d'atributs també hi ha una gran presencia de valors null. Només  un 25% de les mostres contenen tota la informació als atributs. 
+mostres tenen Nan en aquestes caracterísitques. Per la resta d'atributs també hi ha una gran presencia de valors null. Només un 25% de les mostres contenen tota la informació als atributs. 
 
 
 

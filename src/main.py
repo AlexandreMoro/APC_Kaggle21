@@ -26,7 +26,7 @@ from random import randint
 
 def load_dataset(path):
     return pd.read_csv(path, header=0, delimiter=",")
-"""
+# """
 dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/Melbourne_housing_FULL.csv")
 # dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/MELBOURNE_HOUSE_PRICES_LESS.csv")
 
@@ -58,7 +58,8 @@ print(dataset.describe())
 #######Selecció i tractament d'Atributs###########
 #Hi ha atributs redundants que aporten la mateixa informació, la localització:
 # ('Suburb','Address','Postcode','CouncilArea','Latitude','Longitude', 'Regionname')
-# El millor utilitzar Latitud i Longitud => Problema: té 8k Nan sobre 35k mostres => Solució: Mitjana lat i long segons suburb (hi ha 175 dif[el que més especific])
+# El millor utilitzar Latitud i Longitud => Problema: té 8k Nan sobre 35k mostres => Solució: Mitjana lat i long
+# segons suburb (hi ha 175 dif[el que més especific])
 
 # Substitueix els NaN de Latitud i Longitud per l'average del seu suburb
 def find_location(dataset):
@@ -104,7 +105,7 @@ def find_location(dataset):
                 dataset['Longtitude'][index] = suburbs[s][1]
     return dataset
 
-dataset = find_location(dataset)
+# dataset = find_location(dataset)
 
 # Substitueix els NaN de YearBuilt i Landsize per l'average del seu suburb
 def find_yearBuilt_and_landsize(dataset):
@@ -155,38 +156,29 @@ def find_yearBuilt_and_landsize(dataset):
     return dataset
 
 
-dataset = find_yearBuilt_and_landsize(dataset)
-# print(dataset.isnull().sum())
+# dataset = find_yearBuilt_and_landsize(dataset)
+
 def remove_rows_Nan_price_bed_bath_car(dataset):
     aux = dataset.copy()
     counter = 0
     for i, s in enumerate(aux['Suburb']):
         # tmp = dataset.iloc[i:i+1,]
         if pd.isna(dataset['Price'][i]) or pd.isna(dataset['Bedroom2'][i]) or pd.isna(dataset['Bathroom'][i]) or pd.isna(dataset['Car'][i]):
-        # boolean = pd.isna(tmp['Price']) | pd.isna(tmp['Bedroom2']) | pd.isna(tmp['Bathroom']) | pd.isna(tmp['Car'])
-        # b1 = pd.isna(tmp['Price']) == True
-        # b2 = pd.isna(tmp['Bedroom2']) == True
-        # b3 = pd.isna(tmp['Bathroom']) == True
-        # b4 = pd.isna(tmp['Car']) == True
-        # if pd.isna(tmp['Price']) == True:
             a = dataset.iloc[0:i - counter, ]
             b = dataset.iloc[i + 1 - counter:, ]
             dataset = a.append(b)
             counter = counter + 1
-    # dataset = dataset.reset_index()
     print(counter)
     return dataset
 
-dataset = remove_rows_Nan_price_bed_bath_car(dataset)
-print(dataset.isnull().sum())
-# dataset = dataset.drop(['Suburb','Address','Distance','Postcode','CouncilArea','Regionname','BuildingArea'],axis=1)
-dataset = dataset.drop(['Suburb','Address','Postcode','CouncilArea','Regionname'],axis=1)
-print(dataset.dtypes)
-print(dataset.isnull().sum())
+# dataset = remove_rows_Nan_price_bed_bath_car(dataset)
+
+# dataset = dataset.drop(['Suburb','Address','Postcode','CouncilArea','Regionname'],axis=1)
+
 
 # 1-Aquí passar atributs Type i Method a int
 # Type
-print(dataset['Type'].value_counts())
+# print(dataset['Type'].value_counts())
 def codifica_type(dataset):
     one_hot = pd.get_dummies(dataset['Type'])
     one_hot.columns = ['Type(h)', 'Type(t)', 'Type(u)']
@@ -194,7 +186,7 @@ def codifica_type(dataset):
     dataset = dataset.join(one_hot)
     return dataset
 
-dataset = codifica_type(dataset)
+# dataset = codifica_type(dataset)
 
 # Method
 def codifica_method(dataset):
@@ -207,7 +199,7 @@ def codifica_method(dataset):
     dataset = dataset.join(one_hot)
     return dataset
 
-dataset=codifica_method(dataset)
+# dataset=codifica_method(dataset)
 
 # 2-Aquí seleccionar any
 def select_year_From_date(date):
@@ -215,8 +207,8 @@ def select_year_From_date(date):
     aux=aux[2]
     return int(aux)
 
-dataset['Date'].replace({x:select_year_From_date(x) for x in dataset['Date']}, inplace=True)
-print(dataset['Date'].value_counts())
+# dataset['Date'].replace({x:select_year_From_date(x) for x in dataset['Date']}, inplace=True)
+# print(dataset['Date'].value_counts())
 
 # 3-Aqui convertir venedor
 def convert_sellerG (dataset):
@@ -243,26 +235,26 @@ def convert_sellerG (dataset):
 
     return dataset
 
-dataset = convert_sellerG(dataset)
+# dataset = convert_sellerG(dataset)
 
 
 # Salvo les dades fins aquí per carregar després
-dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
-z=3
-"""
+# dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
 
-"""
-dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
+# """
 
-# Actualitzem els price segons IPC: 2017-1.7  2018-1.9
-# Posar price al final
-atributs = dataset.columns.tolist()
-aux = atributs[3:14]
-aux += atributs[15:]
-aux.append(atributs[14])
-dataset = dataset[aux]
-dataset = dataset.reset_index()
-# dataset = dataset.drop(['BuildingArea'])
+# """
+# dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_243.csv")
+#
+# # Actualitzem els price segons IPC: 2017-1.7  2018-1.9
+# # Posar price al final des de lectura del dataset desat
+# atributs = dataset.columns.tolist()
+# aux = atributs[3:14]
+# aux += atributs[15:]
+# aux.append(atributs[14])
+# dataset = dataset[aux]
+# dataset = dataset.reset_index()
+
 def remove_rows_BuildingArea(dataset):
     aux = dataset.copy()
     counter = 0
@@ -275,8 +267,8 @@ def remove_rows_BuildingArea(dataset):
             counter = counter + 1
     return dataset
 
-dataset = remove_rows_BuildingArea(dataset)
-dataset = dataset.reset_index() #ha ficat Level0 i Index
+# dataset = remove_rows_BuildingArea(dataset)
+# dataset = dataset.reset_index() #ha ficat Level0 i Index
 
 def actualize_inflation_price(dataset):
     inflation = {'2016': 1.035, '2017': 1.019, '2018': 1.0}
@@ -284,14 +276,14 @@ def actualize_inflation_price(dataset):
         dataset['Price'][i] = dataset['Price'][i]*inflation[str(r)]
     return dataset
 
-dataset = actualize_inflation_price(dataset)
+# dataset = actualize_inflation_price(dataset)
 
 
-print(dataset.isnull().sum())
-dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_284.csv")
-"""
+# print(dataset.isnull().sum())
+# dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_284.csv")
+# """
 
-"""
+# """
 #######Datasets Tractament de NaN ###########
 def check_room_same_bedrooms(dataset):
     counter_not_equal = 0
@@ -301,7 +293,7 @@ def check_room_same_bedrooms(dataset):
                 counter_not_equal += 1
     print("Nombre de coicidents sobre 26640: {}".format(counter_not_equal))
 
-check_room_same_bedrooms(dataset)
+# check_room_same_bedrooms(dataset)
 
 
 def check_bathroom(dataset):
@@ -325,11 +317,10 @@ def check_bathroom(dataset):
     print("Nombre de less 4_1 {}".format(counter_less_4_1))
     print("Nombre de less 4_2 {}".format(counter_less_4_2))
 
-check_bathroom(dataset)
-# dataset= dataset.replace(np.nan,0)
+# check_bathroom(dataset)
 
-dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
-"""
+# dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
+# """
 
 def separate_sample_for_demo():
     dataset = load_dataset("../data/little__db_linia_324.csv")
