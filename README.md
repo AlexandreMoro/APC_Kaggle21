@@ -80,9 +80,14 @@ Entre els diferents models generats en aquest treball, els models de Random Fore
 
 Comparant els resultats dels models entre els entrenats sobre el dataset sense substitució de Nan, Full, i el pre-processat amb substitució, EDA, podem observar com l'increment aconseguit d'un 20% de les mostres no aporta una millora en les prediccions dels models ja que s'obtenen resultats semblants. D'aquest fet podem extreure'n dues conclusions. La primera és que el volum de mostres de 8800 del Full és suficientment representativa de tots els possibles habitatges que es poden vendre a la ciutat i augmentar la quantitat de mostres només aporta solapament de mostres. La segona, és que un dels perills de substituir valors desconeguts és generar informació errònia que faci equivocar els models en el seu entrenament. Al haver aconseguit resultats semblants, podem considerar que els substitucions van ser correctes i no van inserir valors errònis en les mostres tractades.
 
-La major part dels treballs realitzats amb aquest Kaggle es centren en la part de tractament de Nan i l'anàlisi de les dades. Pels que van un pas més enllà i generen models de predicció, la majoria opta per treballar amb el dataset simplificat i aconsegueixen R2 escort d'entre 0.4 i el 0.7. El treball amb el dataset més extens i l'ús del Random Forest Regressor ha permés aconseguir uns resultats millors. 
+La major part dels treballs realitzats amb aquest Kaggle es centren en la part de tractament de Nan i l'anàlisi de les dades. Pels que van un pas més enllà i generen models de predicció, la majoria opta per treballar amb el dataset simplificat i aconsegueixen R2 escort d'entre 0.4 i el 0.7*. El treball amb el dataset més extens i l'ús del Random Forest Regressor ha permés aconseguir uns resultats millors. 
 
+Que no s'hagi pogut aconseguir uns resultats millors amb cap regressor aplicat sobre aquest dataset indica que la variable objectiu, el preu dels habitatges, es veu influenciada per altres factors que no estan recollits en el dataset com poden ser l'estat de l'immoble, si està reformat, si es ven amb els mobles, si disposa  d'equipaments municipals o accéssos a vies de comunicació o parcs en les proximitats.  Per aconseguir unes millors prediccions caldria dotar les mostres de més característiques que recollísin la totalitat dels factors que realment acaben determinant el valor de venda d'un immoble en la ciutat de Melbourne.
 
+*Links altres treballs:
+- Melbourne Housing: (https://www.kaggle.com/tracyporter/melbourne-housing)
+- Melbourne House Price Prediction: (https://www.kaggle.com/muskanjha/melbourne-house-price-prediction)
+- Melbourne Housing Market EDA and Regression: (https://www.kaggle.com/stephaniestallworth/melbourne-housing-market-eda-and-regression#DATA-PRE-PREPROCESSING)
 
 ## Idees per treballar en un futur
 
