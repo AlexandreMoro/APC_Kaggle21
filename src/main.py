@@ -17,17 +17,22 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.tree import DecisionTreeRegressor
 import statistics
 from matplotlib.legend_handler import HandlerLine2D
+from joblib import dump, load
+from sklearn.model_selection import RandomizedSearchCV
+import time
+from random import randint
 
 # Repo creat
-# ----------------------------------------------------------------------------------------------------------------- #
-# Primera part C EDA
-# ----------------------------------------------------------------------------------------------------------------- #
+
 def load_dataset(path):
     return pd.read_csv(path, header=0, delimiter=",")
 """
 dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/Melbourne_housing_FULL.csv")
 # dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/MELBOURNE_HOUSE_PRICES_LESS.csv")
 
+# ----------------------------------------------------------------------------------------------------------------- #
+# Primera part EDA
+# ----------------------------------------------------------------------------------------------------------------- #
 #######Datasets Dimensionalitat###########
 data = dataset.values
 
@@ -50,9 +55,9 @@ print(dataset.dtypes)
 print(dataset.head())
 print(dataset.describe())
 
-#######Selecció d'Atributs###########
+#######Selecció i tractament d'Atributs###########
 #Hi ha atributs redundants que aporten la mateixa informació, la localització:
-# ('Suburb','Address','Distance','Postcode','CouncilArea','Latitude','Longitude', 'Regionname')
+# ('Suburb','Address','Postcode','CouncilArea','Latitude','Longitude', 'Regionname')
 # El millor utilitzar Latitud i Longitud => Problema: té 8k Nan sobre 35k mostres => Solució: Mitjana lat i long segons suburb (hi ha 175 dif[el que més especific])
 
 # Substitueix els NaN de Latitud i Longitud per l'average del seu suburb
@@ -152,7 +157,7 @@ def find_yearBuilt_and_landsize(dataset):
 
 dataset = find_yearBuilt_and_landsize(dataset)
 # print(dataset.isnull().sum())
-def remove_rows_Nan_prince_bed_bath_car(dataset):
+def remove_rows_Nan_price_bed_bath_car(dataset):
     aux = dataset.copy()
     counter = 0
     for i, s in enumerate(aux['Suburb']):
@@ -172,7 +177,7 @@ def remove_rows_Nan_prince_bed_bath_car(dataset):
     print(counter)
     return dataset
 
-dataset = remove_rows_Nan_prince_bed_bath_car(dataset)
+dataset = remove_rows_Nan_price_bed_bath_car(dataset)
 print(dataset.isnull().sum())
 # dataset = dataset.drop(['Suburb','Address','Distance','Postcode','CouncilArea','Regionname','BuildingArea'],axis=1)
 dataset = dataset.drop(['Suburb','Address','Postcode','CouncilArea','Regionname'],axis=1)
@@ -274,7 +279,7 @@ dataset = remove_rows_BuildingArea(dataset)
 dataset = dataset.reset_index() #ha ficat Level0 i Index
 
 def actualize_inflation_price(dataset):
-    inflation = {'2016': 1.16, '2017': 1.09, '2018': 1.0}
+    inflation = {'2016': 1.035, '2017': 1.019, '2018': 1.0}
     for i,r in enumerate(dataset['Date']):
         dataset['Price'][i] = dataset['Price'][i]*inflation[str(r)]
     return dataset
@@ -326,12 +331,24 @@ check_bathroom(dataset)
 dataset.to_csv("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
 """
 
-# dataset = load_dataset("/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/data/little__db_linia_324.csv")
-#
-# atributs = dataset.columns.tolist()
-# aux = atributs[3:]
-# dataset = dataset[aux]
-# # dataset = dataset.reset_index()
+def separate_sample_for_demo():
+    dataset = load_dataset("../data/little__db_linia_324.csv")
+    #faig random array pels index
+    for i in range(100):
+        indexs = randint(0,10000)
+        a = dataset.iloc[0:indexs, ]
+        b = dataset.iloc[indexs +1:, ]
+        if i==0:
+            demo = dataset.iloc[indexs:indexs+1,]
+        else:
+            demo = demo.append(dataset.iloc[indexs:indexs+1,])
+        dataset = a.append(b)
+    demo.to_csv("../data/demo_dataset.csv")
+    dataset.to_csv("../data/little__db_linia_348.csv")
+
+# separate_sample_for_demo()
+
+
 
 # Selecció del dataset tractat 'EDA' o el sense tractar 'FULL'
 def choose_dataset(which_one):
@@ -493,7 +510,20 @@ def regressor_lineal(dataset):
     data = dataset_norm.values
     x_data = data[:, :-1]
     y_data = data[:, -1]
+
+    #Exportació del model
     # x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+    # regr = regression(x_train,y_train)
+    # dump(regr, '/home/alexandre/Desktop/APC/Cas Kaggle/APC_Kaggle21/models/LR.joblib')
+
+    # start = time.time()
+    # regr = regression(x_train, y_train)
+    # end = time.time()
+    # print('time: ' + str(end - start))
+    # predicted = regr.predict(x_val)
+    # r2 = round(r2_score(y_val, predicted), 3)
+    # print(r2)
+
 
     resultat = []; plt.figure(); res_tmp = []; i_index = [2, 3, 4, 6, 10, 15, 20]
     for i in i_index:
@@ -514,7 +544,7 @@ def regressor_lineal(dataset):
     plt.show()
     print('Lineal Regressor {} by K-fold. Mean: {}'.format('R2 score',round(statistics.mean(res_tmp),4)))
 
-regressor_lineal(dataset[atributs_correlació])
+# regressor_lineal(dataset[atributs_correlació])
 
 
 def random_forest(dataset):
@@ -523,6 +553,14 @@ def random_forest(dataset):
     x_data = data[:, :-1]
     y_data = data[:, -1]
     x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+
+    #Exportació del model
+    # rf = RandomForestRegressor(max_depth=35)
+    # regr = rf.fit(x_train,y_train)
+    # dump(regr, '../models/RF.joblib')
+    # predicted = regr.predict(x_val)
+    # r2 = round(r2_score(y_val, predicted), 3)
+    # print(r2)
 
     # R2 en funció del K-fold
     resultat = [];
@@ -554,8 +592,10 @@ def random_forest(dataset):
     test_results = []
     for i in max_depths:
         dt = RandomForestRegressor(max_depth=i)
+        # start = time.time()
         dt.fit(x_train, y_train)
-
+        # end = time.time()
+        # print('time: ' + str(end - start))
         predicted = dt.predict(x_train)
         r2 = round(r2_score(y_train, predicted), 3)
         train_results.append(r2)
@@ -574,7 +614,7 @@ def random_forest(dataset):
     plt.title('Random Forest R2. Best test: {}'.format(max(test_results)))
     plt.show()
 
-random_forest(dataset[atributs_correlació])
+# random_forest(dataset[atributs_correlació])
 
 
 def decision_tree(dataset):
@@ -583,6 +623,14 @@ def decision_tree(dataset):
     x_data = data[:, :-1]
     y_data = data[:, -1]
     x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+
+    # Exportació del model
+    # dt = DecisionTreeRegressor(max_depth=30)
+    # regr = dt.fit(x_train,y_train)
+    # dump(regr, '../models/DT.joblib')
+    # predicted = regr.predict(x_val)
+    # r2 = round(r2_score(y_val, predicted), 3)
+    # print(r2)
 
     # R2 en funció del K-fold
     resultat = [];
@@ -614,8 +662,10 @@ def decision_tree(dataset):
     test_results = []
     for i in max_depths:
         dt = DecisionTreeRegressor(max_depth=i)
+        # start = time.time()
         dt.fit(x_train, y_train)
-
+        # end = time.time()
+        # print('time: ' + str(end - start))
         predicted = dt.predict(x_train)
         r2 = round(r2_score(y_train, predicted), 3)
         train_results.append(r2)
@@ -635,10 +685,75 @@ def decision_tree(dataset):
     plt.show()
 
 
-decision_tree(dataset[atributs_correlació])
+# decision_tree(dataset[atributs_correlació])
+
+
+# -------------------- Optimització Hiper-paràmetres -------------------- +
+def optim_hiperparams():
+    dataset_norm = standarize(dataset)
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+
+    p = np.arange(1, 1000)
+    s = np.arange(1, 1000)
+    d = np.arange(1, 32)
+    params = {'n_estimators': p, 'random_state': s, 'max_depth': d}
+    randomS = RandomizedSearchCV(estimator=RandomForestRegressor(), param_distributions=params, n_jobs=-1, n_iter=100)
+
+    randomS = randomS.fit(x_data, y_data)
+    best_estimator = randomS.best_estimator_
+    print(best_estimator)
+
+# optim_hiperparams()
 
 
 
+#### SAVE model ####
+
+def load_model():
+    atributs_correlació = ['Rooms', 'Date', 'Distance', 'Bedroom2', 'Bathroom', 'Car', 'Landsize', 'BuildingArea',
+                           'YearBuilt',
+                           'Lattitude', 'Longtitude', 'Type(h)', 'Type(t)', 'Type(u)', 'Method(S)', 'Method(SP)',
+                           'Method(PI)', 'Method(VB)',
+                           'Method(SA)', 'big', 'medium', 'small', 'Price']
+    models = ['RF','DT','LR']
+
+    # Amb el d'entrenament
+    dataset = load_dataset("../data/little__db_linia_324.csv")
+    atributs = dataset.columns.tolist()
+    aux = atributs[3:]
+    dataset = dataset[aux]
+    dataset_norm = standarize(dataset[atributs_correlació])
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+    x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+    print('Resultats amb el dataset EDA i fent split')
+    for m in models:
+        regr = load('../models/{}.joblib'.format(m))
+        predicted = regr.predict(x_val)
+        r2 = round(r2_score(y_val, predicted), 3)
+        print('R2 score for model {}: {}'.format(m,r2))
+
+    #Demo
+    dataset = load_dataset("../data/demo_dataset.csv")
+    atributs = dataset.columns.tolist()
+    aux = atributs[4:]
+    dataset = dataset[aux]
+    dataset_norm = standarize(dataset[atributs_correlació])
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+    print('Resultats amb el dataset DEMO')
+    for m in models:
+        regr = load('../models/{}.joblib'.format(m))
+        predicted = regr.predict(x_data)
+        r2 = round(r2_score(y_data, predicted), 3)
+        print('R2 score for model {}: {}'.format(m,r2))
+
+
+load_model()
 
 z=3
 
