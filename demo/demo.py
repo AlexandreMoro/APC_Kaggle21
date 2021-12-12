@@ -5,7 +5,8 @@ import numpy as np
 from sklearn.metrics import r2_score
 from joblib import dump, load
 import pandas as pd
-
+import warnings
+warnings.filterwarnings('ignore')
 
 def load_dataset(path):
     return pd.read_csv(path, header=0, delimiter=",")

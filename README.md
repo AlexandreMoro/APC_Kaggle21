@@ -71,7 +71,7 @@ Recull dels models creats per cada dataset amb el millors paràmetres i resultat
 
 
 ## Demo
-Per tal de fer una prova dels resultats pels models entrenats sobre EDA, s'ha extret del dataset EDA un conjunt de mostres (100) abans de l'entrenament, es pot fer servir la següent comanda:  python3 demo/demo.py
+Per tal de fer una prova dels resultats pels models entrenats sobre EDA, s'ha extret del dataset EDA un conjunt de mostres (100) abans de l'entrenament, es pot fer servir la següent comanda dins del directori demo:  python3 demo.py
 
 
 ## Conclusions
@@ -91,7 +91,7 @@ Que no s'hagi pogut aconseguir uns resultats millors amb cap regressor aplicat s
 
 ## Idees per treballar en un futur
 
-De cara a una extensió d'aqeust treball seria interessant aplicar algun algorisme diferent com el KNeighborsRegressor o algunds dels mètodes d'ensemble més complexes com el Voting o Boosting en diferents formes. Aquests tenen un cost computacional major i requereixen més temps. Per altra banda seria adequat intentar descubrir els patrons que permetessin susbtituir els valors Nan de les característiques que s'han hagut d'eliminar per no introduir informació equivocada com BuildingAre o  Car.
+De cara a una extensió d'aquest treball seria interessant aplicar algun algorisme diferent com el KNeighborsRegressor o algunds dels mètodes d'ensemble més complexes com el Voting o Boosting en diferents formes. Aquests tenen un cost computacional major i requereixen més temps. Per altra banda seria adequat intentar descubrir els patrons que permetessin susbtituir els valors Nan de les característiques que s'han hagut d'eliminar per no introduir informació equivocada com BuildingAre o  Car.
 
 ## Llicencia
 El projecte s’ha desenvolupat sota llicència oberta Apache 2.0.

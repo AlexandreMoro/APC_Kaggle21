@@ -21,6 +21,8 @@ from joblib import dump, load
 from sklearn.model_selection import RandomizedSearchCV
 import time
 from random import randint
+import warnings
+warnings.filterwarnings('ignore')
 
 # Repo creat
 
@@ -679,6 +681,45 @@ def decision_tree(dataset):
 # decision_tree(dataset[atributs_correlació])
 
 
+def kneighbours(dataset):
+    from sklearn.neighbors import KNeighborsRegressor
+    dataset_norm = standarize(dataset)
+    data = dataset_norm.values
+    x_data = data[:, :-1]
+    y_data = data[:, -1]
+    x_train, y_train, x_val, y_val = split_data(x_data, y_data)
+
+    # max_depths = np.linspace(1, 50, 50, endpoint=True)
+    train_results = []
+    test_results = []
+    max_depths = range(1,50)
+    for i in max_depths:
+        dt = KNeighborsRegressor(n_neighbors=i).fit(x_train, y_train)
+        # start = time.time()
+        # dt.fit(x_train, y_train)
+        # end = time.time()
+        # print('time: ' + str(end - start))
+        predicted = dt.predict(x_train)
+        r2 = round(r2_score(y_train, predicted), 3)
+        train_results.append(r2)
+
+        predicted = dt.predict(x_val)
+        r2 = round(r2_score(y_val, predicted), 3)
+        test_results.append(r2)
+
+    print('Decision Tree best test R2:', max(test_results))
+    line1, = plt.plot(max_depths, train_results, 'b', label='Train R2 error')
+    line2, = plt.plot(max_depths, test_results, 'r', label='Test R2 error')
+
+    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
+    plt.ylabel('R2 score')
+    plt.xlabel('Tree depth')
+    plt.title('Decision Tree R2. Best test: {}'.format(max(test_results)))
+    plt.show()
+
+# kneighbours(dataset)
+
+
 # -------------------- Optimització Hiper-paràmetres -------------------- +
 def optim_hiperparams():
     dataset_norm = standarize(dataset)
@@ -697,6 +738,7 @@ def optim_hiperparams():
     print(best_estimator)
 
 # optim_hiperparams()
+
 
 
 
@@ -744,7 +786,7 @@ def load_model():
         print('R2 score for model {}: {}'.format(m,r2))
 
 
-load_model()
+# load_model()
 
 z=3
 
