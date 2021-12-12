@@ -59,13 +59,14 @@ Després d'aplicar aquest preprocessament, el dataset ha quedat amb 10469 mostre
 Recull dels models creats per cada dataset amb el millors paràmetres i resultats:
 
 | Model            | Dataset | Hiperparametres | Mètrica   | Temps |
-
+|------------------|---------|-----------------|-----------|-------|
 | Regressor Lineal | EDA     | default         | R2: 0.57  | 6 ms  |
 | Regressor Lineal | FULL    | default         | R2: 0.6   | 3 ms  |
 | Random Forest    | EDA     | max_depth: 35   | R2: 0.809 | 3.42s |
 | Random Forest    | FULL    | max_depth: 30   | R2: 0.774 | 2.25s |
 | Decision Tree    | EDA     | max_depth: 7    | R2: 0.682 | 29ms  |	
 | Decision Tree    | FULL    | max_depth: 8    | R2: 0.717 | 22ms  |
+
 
 
 
@@ -77,7 +78,7 @@ Per tal de fer una prova dels resultats pels models entrenats sobre EDA, s'ha ex
 
 Entre els diferents models generats en aquest treball, els models de Random Forest Regressor han donat les millors prediccions. El resultats del coeficient de determinació R2 d'aquests models han estat força consistents entorn al 0.8. Pel què fa als models de tipus Decision Tree regressor, ho han estat entorn al 0.7. Finalment, els pitjors resultats els han donat el Regressor Lineal amb entorn a 0.6 d'R2 score. L'avantatge del Random Forest radica en l'ús de diferents subsets de les mostres per entrenar diferents arbres de decisió i  utilitzar la mitjana de les seves prediccions. D'aquesta forma aconsegueix millorar els resultats de la predicció i controlar l'overfiting respecte a un únic arbre sobre tot el dataset. La contrapartida d'aquest model és que al fer un ensemble, el seu cost computacional és molt superiror i fer els experiments amb ell requereix força temps.
 
-Comparant els resultats dels models entre els entrenats sobre el dataset sense substitució de Nan, Full, i el pre-processat amb substitució, EDA, podem observar com l'increment aconseguit d'un 20% de les mostres no aporta una millora en les prediccions dels models ja que s'obtenen resultats semblants. D'aqeust fet podem extreure'n dues conclusions. La primera és que el volum de mostres de 8800 del Full és suficientment representativa de tots els possibles habitatges que es poden vendre a la ciutat i augmentar la quantitat de mostres només aporta solapament de mostres. La segona, és que un dels perills de substituir valors desconeguts és generar informació errònia que faci equivocar els models en el seu entrenament. Al haver aconseguit resultats semblants, podem considerar que els substitucions van ser correctes i no van inserir valors errònis en les mostres tractades.
+Comparant els resultats dels models entre els entrenats sobre el dataset sense substitució de Nan, Full, i el pre-processat amb substitució, EDA, podem observar com l'increment aconseguit d'un 20% de les mostres no aporta una millora en les prediccions dels models ja que s'obtenen resultats semblants. D'aquest fet podem extreure'n dues conclusions. La primera és que el volum de mostres de 8800 del Full és suficientment representativa de tots els possibles habitatges que es poden vendre a la ciutat i augmentar la quantitat de mostres només aporta solapament de mostres. La segona, és que un dels perills de substituir valors desconeguts és generar informació errònia que faci equivocar els models en el seu entrenament. Al haver aconseguit resultats semblants, podem considerar que els substitucions van ser correctes i no van inserir valors errònis en les mostres tractades.
 
 La major part dels treballs realitzats amb aquest Kaggle es centren en la part de tractament de Nan i l'anàlisi de les dades. Pels que van un pas més enllà i generen models de predicció, la majoria opta per treballar amb el dataset simplificat i aconsegueixen R2 escort d'entre 0.4 i el 0.7. El treball amb el dataset més extens i l'ús del Random Forest Regressor ha permés aconseguir uns resultats millors. 
 
